@@ -1,0 +1,32 @@
+# Node
+node_modules
+.pnpm-store
+
+# Build
+.turbo
+dist
+build
+.next
+coverage
+
+# Env
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea
+.vscode
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Laravel
+/apps/api/vendor
+/apps/api/storage/*.key
+/apps/api/storage/logs
+/apps/api/bootstrap/cache/*.php
+
+# Uploads
+tmp

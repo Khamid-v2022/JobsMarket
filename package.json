@@ -1,0 +1,19 @@
+{
+  "name": "talent-marketplace-monorepo",
+  "private": true,
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "dev:api": "turbo run dev --filter=@talent-marketplace/api",
+    "dev:web": "turbo run dev --filter=@talent-marketplace/web",
+    "dev:infra": "docker compose up -d",
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "turbo run format"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0"
+  }
+}
