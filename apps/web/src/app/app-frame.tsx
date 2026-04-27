@@ -1,7 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useMemo, useRef, useState, useTransition } from "react";
+
+import { DEFAULT_PROFILE_ROLE, type UserProfileRole } from "@/shared/auth/profile";
 
 type SessionUser = {
   id: number;
@@ -11,6 +14,11 @@ type SessionUser = {
 
 type MeResponse = {
   user: SessionUser;
+};
+
+type ProfileStateResponse = {
+  activeProfile: UserProfileRole;
+  profiles: UserProfileRole[];
 };
 
 const PUBLIC_PATHS = new Set(["/", "/login", "/register"]);
@@ -29,6 +37,14 @@ function extractInitials(name: string): string {
   return tokens.map((token) => token[0]?.toUpperCase() ?? "").join("");
 }
 
+function getProfileLabel(profile: UserProfileRole): string {
+  return profile === "freelancer" ? "Freelancer" : "Client";
+}
+
+function getProfileBasePath(profile: UserProfileRole): string {
+  return profile === "freelancer" ? "/freelancer" : "/client";
+}
+
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isPublicRoute = pathname === null || PUBLIC_PATHS.has(pathname);
@@ -43,22 +59,31 @@ export function AppFrame({ children }: { children: ReactNode }) {
 function AuthenticatedShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<SessionUser | null>(null);
+  const [activeProfile, setActiveProfile] = useState<UserProfileRole>(DEFAULT_PROFILE_ROLE);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoggingOut, startLogoutTransition] = useTransition();
+  const [isSwitchingProfile, startSwitchTransition] = useTransition();
   const dropdownContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let active = true;
 
-    const loadUser = async () => {
+    const loadSessionData = async () => {
       try {
-        const response = await fetch("/api/auth/me", {
-          method: "GET",
-          credentials: "same-origin",
-          cache: "no-store",
-        });
+        const [meResponse, profileResponse] = await Promise.all([
+          fetch("/api/auth/me", {
+            method: "GET",
+            credentials: "same-origin",
+            cache: "no-store",
+          }),
+          fetch("/api/profile", {
+            method: "GET",
+            credentials: "same-origin",
+            cache: "no-store",
+          }),
+        ]);
 
-        if (!response.ok) {
+        if (!meResponse.ok) {
           if (active) {
             setUser(null);
           }
@@ -66,19 +91,29 @@ function AuthenticatedShell({ children }: { children: ReactNode }) {
           return;
         }
 
-        const data = (await response.json()) as MeResponse;
+        const [meData, profileData] = await Promise.all([
+          meResponse.json() as Promise<MeResponse>,
+          profileResponse.ok
+            ? (profileResponse.json() as Promise<ProfileStateResponse>)
+            : Promise.resolve<ProfileStateResponse>({
+                activeProfile: DEFAULT_PROFILE_ROLE,
+                profiles: ["freelancer", "client"],
+              }),
+        ]);
 
         if (active) {
-          setUser(data.user);
+          setUser(meData.user);
+          setActiveProfile(profileData.activeProfile ?? DEFAULT_PROFILE_ROLE);
         }
       } catch {
         if (active) {
           setUser(null);
+          setActiveProfile(DEFAULT_PROFILE_ROLE);
         }
       }
     };
 
-    void loadUser();
+    void loadSessionData();
 
     return () => {
       active = false;
@@ -138,6 +173,37 @@ function AuthenticatedShell({ children }: { children: ReactNode }) {
     });
   };
 
+  const handleProfileSwitch = (targetProfile: UserProfileRole) => {
+    startSwitchTransition(async () => {
+      try {
+        const response = await fetch("/api/profile/switch", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "content-type": "application/json",
+            accept: "application/json",
+          },
+          body: JSON.stringify({ profile: targetProfile }),
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        setActiveProfile(targetProfile);
+        setIsDropdownOpen(false);
+        router.replace("/dashboard");
+        router.refresh();
+      } catch {
+        // Intentionally no-op to avoid breaking current session UI for transient network issues.
+      }
+    });
+  };
+
+  const targetProfile: UserProfileRole = activeProfile === "freelancer" ? "client" : "freelancer";
+  const profileBasePath = getProfileBasePath(activeProfile);
+
   return (
     <div className="flex min-h-screen flex-col bg-[linear-gradient(160deg,#fffdf7_0%,#f7f4ea_52%,#eef2f7_100%)]">
       {/* ── Topbar: 화면 최상단 고정, h-16 = 4rem ── */}
@@ -146,7 +212,7 @@ function AuthenticatedShell({ children }: { children: ReactNode }) {
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-200/90">
             JobPortal Workspace
           </p>
-          <p className="text-sm font-semibold leading-none sm:text-base">Operations Console</p>
+          <p className="text-sm font-semibold leading-none sm:text-base">{getProfileLabel(activeProfile)} Console</p>
         </div>
 
         <div className="relative" ref={dropdownContainerRef}>
@@ -166,22 +232,46 @@ function AuthenticatedShell({ children }: { children: ReactNode }) {
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Account</p>
                 <p className="mt-1 text-sm font-medium text-slate-900">{user?.name ?? "Signed user"}</p>
                 <p className="truncate text-xs text-slate-500">{user?.email ?? "Session active"}</p>
+                <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-amber-700">
+                  Active: {getProfileLabel(activeProfile)}
+                </p>
               </div>
 
-              <button
-                type="button"
-                disabled
-                className="mt-1 w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-400"
+              <Link
+                href={`${profileBasePath}/dashboard`}
+                onClick={() => setIsDropdownOpen(false)}
+                className="mt-1 block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100"
               >
-                Profile (coming soon)
-              </button>
+                Dashboard
+              </Link>
+
+              <Link
+                href={`${profileBasePath}/jobs`}
+                onClick={() => setIsDropdownOpen(false)}
+                className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+              >
+                Jobs
+              </Link>
+
+              <Link
+                href={`${profileBasePath}/profile`}
+                onClick={() => setIsDropdownOpen(false)}
+                className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+              >
+                Profile
+              </Link>
 
               <button
                 type="button"
-                disabled
-                className="w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-400"
+                onClick={() => handleProfileSwitch(targetProfile)}
+                disabled={isSwitchingProfile}
+                className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-blue-700 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Setting (coming soon)
+                {isSwitchingProfile
+                  ? "Switching..."
+                  : targetProfile === "client"
+                    ? "Switch to Client"
+                    : "Switch to Freelancer"}
               </button>
 
               <button

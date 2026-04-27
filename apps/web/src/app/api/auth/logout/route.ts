@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { buildBackendUrl } from "@/shared/api/backend";
+import { appendSetCookiesFromUpstream } from "@/shared/api/set-cookie";
+import { PROFILE_COOKIE_NAME } from "@/shared/auth/profile";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -21,11 +23,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       },
     });
 
-    const setCookie = upstream.headers.get("set-cookie");
+    appendSetCookiesFromUpstream(upstream, response);
 
-    if (setCookie !== null) {
-      response.headers.set("set-cookie", setCookie);
-    }
+    response.cookies.set({
+      name: PROFILE_COOKIE_NAME,
+      value: "",
+      path: "/",
+      maxAge: 0,
+      sameSite: "lax",
+      httpOnly: true,
+    });
 
     return response;
   } catch {

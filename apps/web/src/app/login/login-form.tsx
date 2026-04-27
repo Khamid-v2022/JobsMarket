@@ -72,6 +72,13 @@ export function LoginForm() {
     };
   }, []);
 
+  useEffect(() => {
+    if (currentUser !== null) {
+      router.replace("/dashboard");
+      router.refresh();
+    }
+  }, [currentUser, router]);
+
   const handleSubmit = (formData: FormData) => {
     const email = formData.get("email");
     const password = formData.get("password");
@@ -105,6 +112,7 @@ export function LoginForm() {
 
       setCurrentUser(data?.user ?? null);
       router.replace("/dashboard");
+      router.refresh();
     });
   };
 
@@ -118,22 +126,8 @@ export function LoginForm() {
 
   if (currentUser !== null) {
     return (
-      <div className="rounded-[2rem] border border-emerald-700/15 bg-white/85 p-6 shadow-xl shadow-emerald-100/70 sm:p-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">
-          Signed in
-        </p>
-        <h2 className="mt-3 text-3xl font-semibold text-slate-950">Welcome back, {currentUser.name}.</h2>
-        <p className="mt-3 text-base leading-7 text-slate-700">
-          Your session is active with <span className="font-medium text-slate-950">{currentUser.email}</span>.
-        </p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/"
-            className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/30 transition hover:-translate-y-0.5 hover:bg-orange-400"
-          >
-            Return Home
-          </Link>
-        </div>
+      <div className="rounded-3xl border border-slate-900/10 bg-white/80 p-6 text-sm text-slate-700 shadow-lg shadow-orange-100/60">
+        Redirecting to your dashboard...
       </div>
     );
   }

@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { PROFILE_COOKIE_NAME, resolveActiveProfile } from "@/shared/auth/profile";
+
 const DEFAULT_BACKEND_URL = "http://localhost:8000";
 
 const PUBLIC_PATHS = new Set(["/", "/login", "/register"]);
 const GUEST_ONLY_PATHS = new Set(["/login", "/register"]);
+
+const FREELANCER_PREFIX = "/freelancer";
+const CLIENT_PREFIX = "/client";
+
+function getDashboardPathByProfile(profile: "freelancer" | "client"): string {
+  return profile === "freelancer" ? "/freelancer/dashboard" : "/client/dashboard";
+}
 
 function normalizeBaseUrl(url: string): string {
   return url.endsWith("/") ? url.slice(0, -1) : url;
@@ -35,13 +44,27 @@ async function isAuthenticated(request: NextRequest): Promise<boolean> {
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
   const authenticated = await isAuthenticated(request);
+  const activeProfile = resolveActiveProfile(request.cookies.get(PROFILE_COOKIE_NAME)?.value);
+  const activeDashboardPath = getDashboardPathByProfile(activeProfile);
 
   if (authenticated && GUEST_ONLY_PATHS.has(pathname)) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL(activeDashboardPath, request.url));
   }
 
   if (!authenticated && !PUBLIC_PATHS.has(pathname)) {
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  if (authenticated && pathname === "/dashboard") {
+    return NextResponse.redirect(new URL(activeDashboardPath, request.url));
+  }
+
+  if (authenticated && pathname.startsWith(FREELANCER_PREFIX) && activeProfile !== "freelancer") {
+    return NextResponse.redirect(new URL(activeDashboardPath, request.url));
+  }
+
+  if (authenticated && pathname.startsWith(CLIENT_PREFIX) && activeProfile !== "client") {
+    return NextResponse.redirect(new URL(activeDashboardPath, request.url));
   }
 
   return NextResponse.next();

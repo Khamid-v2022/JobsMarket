@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { buildBackendUrl } from "@/shared/api/backend";
+import { appendSetCookiesFromUpstream } from "@/shared/api/set-cookie";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   let payload: unknown;
@@ -36,11 +37,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       },
     });
 
-    const setCookie = upstream.headers.get("set-cookie");
-
-    if (setCookie !== null) {
-      response.headers.set("set-cookie", setCookie);
-    }
+    appendSetCookiesFromUpstream(upstream, response);
 
     return response;
   } catch {
