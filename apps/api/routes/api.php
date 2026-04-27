@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Auth\AuthenticatedUserController;
 use App\Http\Controllers\Api\V1\Auth\LoginController;
+use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\RegisterController;
 use App\Http\Controllers\Api\V1\Auth\VerifyEmailController;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -26,6 +27,7 @@ Route::prefix('v1')->group(function () use ($sessionMiddleware): void {
     Route::middleware($sessionMiddleware)->prefix('auth')->group(function (): void {
         Route::post('/register', RegisterController::class);
         Route::post('/login', LoginController::class);
+        Route::post('/logout', LogoutController::class);
         Route::post('/verify-email', VerifyEmailController::class);
         Route::get('/me', AuthenticatedUserController::class);
     });

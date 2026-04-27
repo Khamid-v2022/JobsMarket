@@ -4,7 +4,7 @@ import { LoginForm } from "./login-form";
 
 export default function LoginPage() {
   return (
-    <main className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-stone-950 via-slate-900 to-orange-950 px-5 py-8 sm:px-8">
+    <main className="relative isolate flex min-h-screen items-center overflow-hidden bg-gradient-to-br from-stone-950 via-slate-900 to-orange-950 px-2 py-4 sm:px-4 sm:py-6">
       <div
         className="pointer-events-none absolute left-0 top-0 -z-10 h-80 w-80 rounded-full bg-orange-400/20 blur-3xl"
         aria-hidden="true"
@@ -14,7 +14,7 @@ export default function LoginPage() {
         aria-hidden="true"
       />
 
-      <section className="grid w-full max-w-6xl gap-8 rounded-[2rem] border border-white/10 bg-white/8 p-4 shadow-2xl backdrop-blur md:p-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
+      <section className="grid w-full gap-8 rounded-[2rem] border border-white/10 bg-white/8 p-4 shadow-2xl backdrop-blur md:p-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
         <div className="rounded-[2rem] bg-gradient-to-br from-orange-500 via-amber-400 to-orange-200 p-6 text-slate-950 shadow-xl shadow-orange-950/20 sm:p-8">
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-950/75">JOBPORTAL</p>

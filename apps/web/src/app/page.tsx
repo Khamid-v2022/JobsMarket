@@ -6,7 +6,7 @@ export default function Home() {
   ];
 
   return (
-    <main className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-amber-50 via-orange-100 to-rose-100 px-5 py-8 sm:px-8">
+    <main className="relative isolate flex min-h-screen items-center overflow-hidden bg-gradient-to-br from-amber-50 via-orange-100 to-rose-100 px-2 py-4 sm:px-4 sm:py-6">
       <div
         className="pointer-events-none absolute -left-20 -top-12 -z-10 h-80 w-80 rounded-full bg-amber-300/40 blur-3xl"
         aria-hidden="true"
@@ -16,7 +16,7 @@ export default function Home() {
         aria-hidden="true"
       />
 
-      <section className="grid w-full max-w-6xl gap-4 rounded-3xl border border-stone-900/10 bg-orange-50/90 p-4 shadow-2xl backdrop-blur-sm sm:p-6 lg:grid-cols-3 lg:gap-8">
+      <section className="grid w-full gap-4 rounded-3xl border border-stone-900/10 bg-orange-50/90 p-4 shadow-2xl backdrop-blur-sm sm:p-6 lg:grid-cols-3 lg:gap-8">
         <header className="col-span-full flex items-center justify-between px-1 pb-2">
           <p className="m-0 text-xs font-bold uppercase tracking-widest text-slate-900/80">JOBPORTAL</p>
           <a
