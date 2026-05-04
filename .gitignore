@@ -30,15 +30,3 @@ Thumbs.db
 
 # Uploads
 tmp
-
-# AI / Agent config files
-**/agent.md
-**/*.agent.md
-**/AGENT.md
-**/AGENTS.md
-**/CLAUDE.md
-**/copilot-instructions.md
-**/.github/agents/
-**/.github/instructions/
-**/.github/prompts/
-**/.claude/
